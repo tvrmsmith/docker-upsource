@@ -28,10 +28,15 @@ RUN wget -q https://download.jetbrains.com/upsource/$APP_DISTFILE && \
     mv Upsource $APP_SUFFIX && \
     chown -R $APP_USER:$APP_USER $APP_DIR
 
-USER $APP_USER
+RUN apt-get -yq update && \
+    apt-get -yq --no-install-recommends install supervisor
+RUN chown $APP_USER:$APP_USER /var/log/supervisor
+COPY supervisord.conf /etc/supervisor/conf.d/upsource.conf
+
+# USER $APP_USER
 WORKDIR $APP_DIR
 
-RUN bin/upsource.sh configure \
+RUN sudo -u $APP_USER bin/upsource.sh configure \
     --backups-dir $APP_HOME/backups \
     --data-dir    $APP_HOME/data \
     --logs-dir    $APP_HOME/log \
@@ -39,7 +44,7 @@ RUN bin/upsource.sh configure \
     --listen-port $APP_PORT \
     --base-url    http://localhost/
 
-ENTRYPOINT ["bin/upsource.sh"]
-CMD ["run"]
+ENTRYPOINT ["/usr/bin/supervisord"]
+CMD ["-c", "/etc/supervisor/supervisord.conf"]
 EXPOSE $APP_PORT
 VOLUME ["$APP_HOME"]

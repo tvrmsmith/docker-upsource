@@ -1,6 +1,8 @@
 .git*
-nginx
+etc
 build.sh
 create.sh
+docker-compose.yml
 LICENSE*
 README*
+
